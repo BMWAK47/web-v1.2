@@ -249,19 +249,43 @@
             font-family: 'Microsoft JhengHei', '微軟正黑體', Arial, sans-serif;
         }
 
+        /* 更新排行榜列表樣式 */
         .ranking-list li {
-            background: #3a3a54;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
+            background: #232338;
+            border: 1px solid #3d3d57;
+            color: #e0e0e0;
+            padding: 1.5rem;
+            border-radius: 0.625rem;
+            margin-bottom: 1rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease-in-out;
+        }
+        .ranking-list li:hover {
+            transform: translateY(-0.25rem);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3);
+        }
+        .ranking-list li .player-info {
+            font-size: 1.25rem;
+            font-weight: 500;
+        }
+        .ranking-list li .score {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: #00ffff; /* 調整分數顏色以符合風格 */
         }
         .ranking-list li:first-child {
-            background: linear-gradient(90deg, #ffd700, #ff8c00);
-            color: #333;
-            box-shadow: 0 0 20px #ffd700;
+            background: linear-gradient(90deg, #8a2be2, #4b0082);
+            border: 1px solid #8a2be2;
+            color: #fff;
+            box-shadow: 0 0 1.5rem rgba(138, 43, 226, 0.6);
+            transform: scale(1.05);
+        }
+        .ranking-list li:first-child .score {
+            color: #fff;
+            text-shadow: 0 0 0.5rem rgba(255, 255, 255, 0.5);
         }
         
         #total-score-container {
@@ -402,6 +426,37 @@
             cursor: pointer;
             z-index: 10;
         }
+
+        #ranking-view #your-rank {
+            background: #4a4a6e;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.2em;
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 0 0 8px #00ffff;
+            border: 1px solid #00ffff;
+        }
+
+        /* 影片播放器容器樣式 */
+        #video-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none; /* 預設隱藏 */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        #video-player {
+            max-width: 90%;
+            max-height: 90%;
+        }
     </style>
 </head>
 <body>
@@ -410,6 +465,10 @@
         <div class="loading-spinner"></div>
         <div class="loading-text">資料傳輸中...請稍候</div>
         <div class="loading-joke" id="loading-message"></div>
+    </div>
+
+    <div id="video-overlay">
+        <video id="video-player" controls></video>
     </div>
 
     <div class="container" id="main-container">
@@ -462,12 +521,14 @@
             
             <div id="ranking-view" style="display: none;">
                 <h2>核心資料庫排名</h2>
+                <div id="your-rank">載入中...</div>
                 <ul class="ranking-list" id="ranking-container"></ul>
             </div>
         </div>
     </div>
 
     <script>
+        // 請務必將此 URL 替換為您自己的 Google Apps Script 部署 URL
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzkhhV9y6iHlWY14V4ucYNqNkkYJ5LAbfi8nEhF9vX7E8O-rs05P5d4qfnh47QibyFx/exec"; 
 
         let questions = [];
@@ -475,6 +536,7 @@
         let userStatus = { responses: {}, attempts: {}, totalScore: 0 };
         let currentQuestion = null;
         let maxPossibleScore = 0;
+        let videoPlayed = { login: false, score: false };
 
         const welcomeSection = document.getElementById('welcome-section');
         const mainQuizSection = document.getElementById('main-quiz-section');
@@ -491,16 +553,19 @@
         const attemptsInfo = document.getElementById('attempts-info');
         const submitBtn = document.getElementById('submit-btn');
         const rankingContainer = document.getElementById('ranking-container');
+        const yourRankDiv = document.getElementById('your-rank');
         const showQuestionsBtn = document.getElementById('show-questions-btn');
         const showRankingBtn = document.getElementById('show-ranking-btn');
         const scoreProgressBar = document.getElementById('score-progress-bar');
         const totalScoreContainer = document.getElementById('total-score-container');
         const currentScoreText = document.getElementById('current-score-text');
         const loadingOverlay = document.getElementById('loading-overlay');
-        const loadingMessage = document.getElementById('loading-message');
+        const loadingMessage = document.getElementById('loading-joke');
         const mainContainer = document.getElementById('main-container');
+        const videoOverlay = document.getElementById('video-overlay');
+        const videoPlayer = document.getElementById('video-player');
 
-        const loadingMessages = [
+        const loadingJokes = [
             "在非洲，每六十秒，就有一分鐘過去",
             "太陽系中，哪顆行星的自轉最慢？金星，它的自轉週期比公轉週期還長。",
             "凡是每天喝水的人，有高機率在100年內死去",
@@ -523,15 +588,24 @@
                 username = usernameInput.value.trim();
                 if (username) {
                     showLoading();
-                    loadUserStatus().then(() => {
-                        return loadQuestions();
-                    }).then(() => {
+                    // 使用 Promise.all 優化，同時載入使用者狀態和題目
+                    Promise.all([
+                        loadUserStatus(),
+                        loadQuestions()
+                    ]).then(() => {
                         hideLoading();
                         welcomeSection.style.display = 'none';
                         mainQuizSection.style.display = 'block';
+                        
+                        // 登入後播放第一部影片
+                        if (!videoPlayed.login) {
+                            playVideo('video1.mp4');
+                            videoPlayed.login = true;
+                        }
                     }).catch(error => {
                         hideLoading();
                         alert('登入失敗或連線錯誤: ' + error.message);
+                        console.error('登入失敗或連線錯誤', error);
                     });
                 }
             });
@@ -548,13 +622,23 @@
         });
 
         function showLoading() {
-            const randomIndex = Math.floor(Math.random() * loadingMessages.length);
-            loadingMessage.textContent = loadingMessages[randomIndex];
+            const randomIndex = Math.floor(Math.random() * loadingJokes.length);
+            loadingMessage.textContent = loadingJokes[randomIndex];
             loadingOverlay.classList.add('visible');
         }
 
         function hideLoading() {
             loadingOverlay.classList.remove('visible');
+        }
+
+        function playVideo(videoSource) {
+            videoPlayer.src = videoSource;
+            videoOverlay.style.display = 'flex';
+            videoPlayer.play();
+            videoPlayer.onended = () => {
+                videoOverlay.style.display = 'none';
+                videoPlayer.src = '';
+            };
         }
 
         function setFontSize(size) {
@@ -640,8 +724,7 @@
                     btn.textContent = `function success(Q${q['題號']}) {\n  return "COMPLETED";\n}`;
                 } else {
                     btn.classList.add('glitch');
-                    // 減少錯誤行數，並在開頭包含題號
-                    const numLines = Math.floor(Math.random() * 2) + 1; // 1 或 2 行
+                    const numLines = Math.floor(Math.random() * 2) + 1;
                     let errorContent = '';
                     for (let i = 0; i < numLines; i++) {
                         errorContent += `ERROR[${q['題號']}]: ${generateRandomString(Math.floor(Math.random() * 20) + 10)}\n`;
@@ -682,7 +765,6 @@
                  scoreInfo.classList.remove('answered-text');
             }
            
-            // 題目標題和內容都直接顯示，不應用閃爍效果
             questionTitle.textContent = `第 ${question['題號']} 題`;
             questionText.textContent = question['題目'];
             
@@ -838,7 +920,7 @@
                     throw new Error(data.error);
                 }
                 
-                // 修正：從多筆同名成績中，只留下最高分的那一筆
+                // 從多筆同名成績中，只留下最高分的那一筆
                 const highestScores = {};
                 data.forEach(entry => {
                     if (!highestScores[entry.name] || entry.score > highestScores[entry.name].score) {
@@ -850,10 +932,34 @@
                 const uniqueRanking = Object.values(highestScores);
                 uniqueRanking.sort((a, b) => b.score - a.score);
 
+                // 找到自己的排名
+                const userRankEntry = uniqueRanking.find(rank => rank.name === username);
+                if (userRankEntry) {
+                    const userPosition = uniqueRanking.indexOf(userRankEntry) + 1;
+                    yourRankDiv.textContent = `您的排名：第 ${userPosition} 名 (${userRankEntry.score} 分)`;
+                } else {
+                    yourRankDiv.textContent = `您的排名：未上榜`;
+                }
+
                 rankingContainer.innerHTML = '';
                 uniqueRanking.forEach((rank, index) => {
                     const li = document.createElement('li');
-                    li.textContent = `第 ${index + 1} 名: ${rank.name} - ${rank.score} 分`;
+                    
+                    const rankSpan = document.createElement('span');
+                    rankSpan.textContent = `第 ${index + 1} 名`;
+                    
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = 'player-info';
+                    nameSpan.textContent = rank.name;
+
+                    const scoreSpan = document.createElement('span');
+                    scoreSpan.className = 'score';
+                    scoreSpan.textContent = `${rank.score} 分`;
+
+                    li.appendChild(rankSpan);
+                    li.appendChild(nameSpan);
+                    li.appendChild(scoreSpan);
+                    
                     rankingContainer.appendChild(li);
                 });
             });
@@ -867,6 +973,11 @@
 
                 if (userStatus.totalScore > 16.6) {
                     scoreProgressBar.classList.add('purple');
+                    // 分數達到 16.6 後播放第二部影片
+                    if (!videoPlayed.score) {
+                        playVideo('video2.mp4');
+                        videoPlayed.score = true;
+                    }
                 } else {
                     scoreProgressBar.classList.remove('purple');
                 }
