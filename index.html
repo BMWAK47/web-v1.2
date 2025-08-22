@@ -528,461 +528,472 @@
     </div>
 
     <script>
-        // 請務必將此 URL 替換為您自己的 Google Apps Script 部署 URL
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzkhhV9y6iHlWY14V4ucYNqNkkYJ5LAbfi8nEhF9vX7E8O-rs05P5d4qfnh47QibyFx/exec"; 
+    // 請務必將此 URL 替換為您自己的 Google Apps Script 部署 URL
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzkhhV9y6iHlWY14V4ucYNqNkkYJ5LAbfi8nEhF9vX7E8O-rs05P5d4qfnh47QibyFx/exec"; 
 
-        let questions = [];
-        let username = '';
-        let userStatus = { responses: {}, attempts: {}, totalScore: 0 };
-        let currentQuestion = null;
-        let maxPossibleScore = 0;
-        let videoPlayed = { login: false, score: false };
+    let questions = [];
+    let username = '';
+    let userStatus = { responses: {}, attempts: {}, totalScore: 0 };
+    let currentQuestion = null;
+    let maxPossibleScore = 0;
+    let videoPlayed = { login: false, score: false };
 
-        const welcomeSection = document.getElementById('welcome-section');
-        const mainQuizSection = document.getElementById('main-quiz-section');
-        const loginForm = document.getElementById('login-form');
-        const usernameInput = document.getElementById('username-input');
-        const questionsView = document.getElementById('questions-view');
-        const quizView = document.getElementById('quiz-view');
-        const rankingView = document.getElementById('ranking-view');
-        const questionListContainer = document.getElementById('question-list-container');
-        const questionTitle = document.getElementById('question-title');
-        const questionText = document.getElementById('question-text');
-        const scoreInfo = document.getElementById('score-info');
-        const optionsContainer = document.getElementById('options-container');
-        const attemptsInfo = document.getElementById('attempts-info');
-        const submitBtn = document.getElementById('submit-btn');
-        const rankingContainer = document.getElementById('ranking-container');
-        const yourRankDiv = document.getElementById('your-rank');
-        const showQuestionsBtn = document.getElementById('show-questions-btn');
-        const showRankingBtn = document.getElementById('show-ranking-btn');
-        const scoreProgressBar = document.getElementById('score-progress-bar');
-        const totalScoreContainer = document.getElementById('total-score-container');
-        const currentScoreText = document.getElementById('current-score-text');
-        const loadingOverlay = document.getElementById('loading-overlay');
-        const loadingMessage = document.getElementById('loading-joke');
-        const mainContainer = document.getElementById('main-container');
-        const videoOverlay = document.getElementById('video-overlay');
-        const videoPlayer = document.getElementById('video-player');
+    const welcomeSection = document.getElementById('welcome-section');
+    const mainQuizSection = document.getElementById('main-quiz-section');
+    const loginForm = document.getElementById('login-form');
+    const usernameInput = document.getElementById('username-input');
+    const questionsView = document.getElementById('questions-view');
+    const quizView = document.getElementById('quiz-view');
+    const rankingView = document.getElementById('ranking-view');
+    const questionListContainer = document.getElementById('question-list-container');
+    const questionTitle = document.getElementById('question-title');
+    const questionText = document.getElementById('question-text');
+    const scoreInfo = document.getElementById('score-info');
+    const optionsContainer = document.getElementById('options-container');
+    const attemptsInfo = document.getElementById('attempts-info');
+    const submitBtn = document.getElementById('submit-btn');
+    const rankingContainer = document.getElementById('ranking-container');
+    const yourRankDiv = document.getElementById('your-rank');
+    const showQuestionsBtn = document.getElementById('show-questions-btn');
+    const showRankingBtn = document.getElementById('show-ranking-btn');
+    const scoreProgressBar = document.getElementById('score-progress-bar');
+    const totalScoreContainer = document.getElementById('total-score-container');
+    const currentScoreText = document.getElementById('current-score-text');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const loadingMessage = document.getElementById('loading-joke');
+    const mainContainer = document.getElementById('main-container');
+    const videoOverlay = document.getElementById('video-overlay');
+    const videoPlayer = document.getElementById('video-player');
 
-        const loadingJokes = [
-            "在非洲，每六十秒，就有一分鐘過去",
-            "太陽系中，哪顆行星的自轉最慢？金星，它的自轉週期比公轉週期還長。",
-            "凡是每天喝水的人，有高機率在100年內死去",
-            "人被殺，就會死。",
-            "只要每天省下買一杯奶茶的錢，十天後就能買十杯奶茶",
-            "蜜蜂的翅膀每秒可以振動多少次？大約200次。",
-            "什麼東西比一般的馬跑得快？快馬。",
-            "地球上最堅硬的物質是什麼？鑽石。",
-            "為什麼電腦會感冒？因為它有太多病毒！",
-            "巴山楚水淒涼地 Responsibility",
-            "成功的男人背後，都有一個脊椎",
-            "有朋自遠方來，雖遠必誅"
-        ];
+    const loadingJokes = [
+        "在非洲，每六十秒，就有一分鐘過去",
+        "太陽系中，哪顆行星的自轉最慢？金星，它的自轉週期比公轉週期還長。",
+        "凡是每天喝水的人，有高機率在100年內死去",
+        "人被殺，就會死。",
+        "只要每天省下買一杯奶茶的錢，十天後就能買十杯奶茶",
+        "蜜蜂的翅膀每秒可以振動多少次？大約200次。",
+        "什麼東西比一般的馬跑得快？快馬。",
+        "地球上最堅硬的物質是什麼？鑽石。",
+        "為什麼電腦會感冒？因為它有太多病毒！",
+        "巴山楚水淒涼地 Responsibility",
+        "成功的男人背後，都有一個脊椎",
+        "有朋自遠方來，雖遠必誅"
+    ];
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        setFontSize('medium');
         
-        document.addEventListener('DOMContentLoaded', () => {
-            setFontSize('medium');
-            
-            loginForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                username = usernameInput.value.trim();
-                if (username) {
-                    showLoading();
-                    // 使用 Promise.all 優化，同時載入使用者狀態和題目
-                    Promise.all([
-                        loadUserStatus(),
-                        loadQuestions()
-                    ]).then(() => {
-                        hideLoading();
-                        welcomeSection.style.display = 'none';
-                        mainQuizSection.style.display = 'block';
-                        
-                        // 登入後播放第一部影片
-                        if (!videoPlayed.login) {
-                            playVideo('video1.mp4');
-                            videoPlayed.login = true;
-                        }
-                    }).catch(error => {
-                        hideLoading();
-                        alert('登入失敗或連線錯誤: ' + error.message);
-                        console.error('登入失敗或連線錯誤', error);
-                    });
-                }
-            });
-
-            showQuestionsBtn.addEventListener('click', () => {
-                showQuestionsList();
-            });
-            showRankingBtn.addEventListener('click', () => {
-                showRanking();
-            });
-            submitBtn.addEventListener('click', () => {
-                submitAnswer();
-            });
-        });
-
-        function showLoading() {
-            const randomIndex = Math.floor(Math.random() * loadingJokes.length);
-            loadingMessage.textContent = loadingJokes[randomIndex];
-            loadingOverlay.classList.add('visible');
-        }
-
-        function hideLoading() {
-            loadingOverlay.classList.remove('visible');
-        }
-
-        function playVideo(videoSource) {
-            videoPlayer.src = videoSource;
-            videoOverlay.style.display = 'flex';
-            videoPlayer.play();
-            videoPlayer.onended = () => {
-                videoOverlay.style.display = 'none';
-                videoPlayer.src = '';
-            };
-        }
-
-        function setFontSize(size) {
-            document.querySelectorAll('.font-size-controls button').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`.font-size-controls button[onclick="setFontSize('${size}')"]`).classList.add('active');
-            
-            let fontSizeValue;
-            if (size === 'small') {
-                fontSizeValue = '14px';
-            } else if (size === 'medium') {
-                fontSizeValue = '16px';
-            } else if (size === 'large') {
-                fontSizeValue = '18px';
-            }
-            
-            document.documentElement.style.fontSize = fontSizeValue;
-            questionText.style.fontSize = fontSizeValue;
-        }
-
-        function showQuestionsList() {
-            quizView.style.display = 'none';
-            rankingView.style.display = 'none';
-            questionsView.style.display = 'block';
-            totalScoreContainer.style.display = 'block'; 
-            updateProgressBar();
-            renderQuestionList();
-        }
-
-        function showRanking() {
-            showLoading();
-            questionsView.style.display = 'none';
-            quizView.style.display = 'none';
-            rankingView.style.display = 'block';
-            fetchRanking().then(() => hideLoading()).catch(() => hideLoading());
-        }
-
-        function fetchAPI(action, params = {}) {
-            const formData = new FormData();
-            formData.append('action', action);
-            for (const key in params) {
-                formData.append(key, params[key]);
-            }
-            return fetch(WEB_APP_URL, {
-                method: 'POST',
-                body: formData
-            }).then(res => res.json());
-        }
-
-        function loadQuestions() {
-            return fetchAPI('getQuestions').then(data => {
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-                questions = data;
-                maxPossibleScore = questions.reduce((sum, q) => sum + (q['滿分'] || 1), 0);
-                renderQuestionList();
-            });
-        }
-        
-        function loadUserStatus() {
-            return fetchAPI('getUserStatus', { name: username }).then(data => {
-                if (data.error) {
-                    console.error('載入使用者狀態失敗:', data.error);
-                    throw new Error('載入使用者狀態失敗');
-                } else {
-                    userStatus = data;
-                    updateProgressBar();
-                }
-            });
-        }
-        
-        function renderQuestionList() {
-            questionListContainer.innerHTML = '';
-            questions.forEach(q => {
-                const btn = document.createElement('a');
-                btn.href = '#';
-                btn.className = 'question-btn';
-                
-                const isAnsweredCorrectly = userStatus.responses[q['題號']] && userStatus.responses[q['題號']].score > 0;
-                
-                if (isAnsweredCorrectly) {
-                    btn.classList.add('answered');
-                    btn.textContent = `function success(Q${q['題號']}) {\n  return "COMPLETED";\n}`;
-                } else {
-                    btn.classList.add('glitch');
-                    const numLines = Math.floor(Math.random() * 2) + 1;
-                    let errorContent = '';
-                    for (let i = 0; i < numLines; i++) {
-                        errorContent += `ERROR[${q['題號']}]: ${generateRandomString(Math.floor(Math.random() * 20) + 10)}\n`;
-                    }
-                    btn.textContent = errorContent.trim();
-                }
-                
-                btn.onclick = () => showQuestion(q);
-                questionListContainer.appendChild(btn);
-            });
-        }
-        
-        function generateRandomString(length) {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:",.<>/?';
-            let result = '';
-            for (let i = 0; i < length; i++) {
-                result += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return result;
-        }
-
-        function showQuestion(question) {
-            questionsView.style.display = 'none';
-            rankingView.style.display = 'none';
-            quizView.style.display = 'block';
-            totalScoreContainer.style.display = 'none';
-            
-            currentQuestion = question;
-            const isAnsweredCorrectly = userStatus.responses[question['題號']] && userStatus.responses[question['題號']].score > 0;
-
-            if (isAnsweredCorrectly) {
-                 questionTitle.classList.add('answered-text');
-                 questionText.classList.add('answered-text');
-                 scoreInfo.classList.add('answered-text');
-            } else {
-                 questionTitle.classList.remove('answered-text');
-                 questionText.classList.remove('answered-text');
-                 scoreInfo.classList.remove('answered-text');
-            }
-           
-            questionTitle.textContent = `第 ${question['題號']} 題`;
-            questionText.textContent = question['題目'];
-            
-            const fullScore = question['滿分'] || 1;
-            scoreInfo.textContent = `這題滿分：${fullScore} 分`;
-            
-            optionsContainer.innerHTML = '';
-
-            const attemptsLeft = (question['作答次數限制'] || 1) - (userStatus.attempts[question['題號']] || 0);
-            attemptsInfo.textContent = `剩餘作答次數: ${attemptsLeft}`;
-
-            if (question['題型'] === '問答') {
-                const textarea = document.createElement('textarea');
-                textarea.rows = 4;
-                textarea.cols = 50;
-                textarea.id = 'answer-textarea';
-                optionsContainer.appendChild(textarea);
-            } else if (question['題型'] === '單選') {
-                for (let i = 1; i <= 5; i++) {
-                    const optionKey = `選項${i}`;
-                    const optionValue = question[optionKey];
-                    if (optionValue) {
-                        const optionDiv = document.createElement('div');
-                        const input = document.createElement('input');
-                        const label = document.createElement('label');
-                        const optionLetter = String.fromCharCode(64 + i);
-
-                        input.type = 'radio';
-                        input.name = 'answer';
-                        input.value = optionLetter;
-                        
-                        label.textContent = `${optionLetter}. ${optionValue}`;
-                        label.prepend(input);
-                        
-                        optionDiv.appendChild(label);
-                        optionsContainer.appendChild(optionDiv);
-
-                        input.addEventListener('change', () => {
-                            optionsContainer.querySelectorAll('div').forEach(div => div.classList.remove('checked'));
-                            if (input.checked) {
-                                optionDiv.classList.add('checked');
-                            }
-                        });
-                    }
-                }
-            } else if (question['題型'] === '多選') {
-                 for (let i = 1; i <= 5; i++) {
-                    const optionKey = `選項${i}`;
-                    const optionValue = question[optionKey];
-                    if (optionValue) {
-                        const optionDiv = document.createElement('div');
-                        const input = document.createElement('input');
-                        const label = document.createElement('label');
-                        const optionLetter = String.fromCharCode(64 + i);
-
-                        input.type = 'checkbox';
-                        input.name = 'answer';
-                        input.value = optionLetter;
-                        
-                        label.textContent = `${optionLetter}. ${optionValue}`;
-                        label.prepend(input);
-                        
-                        optionDiv.appendChild(label);
-                        optionsContainer.appendChild(optionDiv);
-
-                        input.addEventListener('change', () => {
-                            optionDiv.classList.toggle('checked', input.checked);
-                        });
-                    }
-                }
-            }
-            
-            submitBtn.disabled = attemptsLeft <= 0;
-            submitBtn.textContent = submitBtn.disabled ? '已無作答次數' : '提交答案';
-        }
-
-        function submitAnswer() {
-            return new Promise((resolve, reject) => {
-                if (!currentQuestion) {
-                    alert('沒有選擇題目，無法提交');
-                    reject('no question');
-                    return;
-                }
-
-                let answer = '';
-                if (currentQuestion['題型'] === '問答') {
-                    const textarea = document.getElementById('answer-textarea');
-                    if (textarea) {
-                        answer = textarea.value.trim();
-                    }
-                } else if (currentQuestion['題型'] === '單選') {
-                    const checkedRadio = optionsContainer.querySelector('input[name="answer"]:checked');
-                    if (checkedRadio) {
-                        answer = checkedRadio.value;
-                    }
-                } else if (currentQuestion['題型'] === '多選') {
-                    const checkedBoxes = optionsContainer.querySelectorAll('input[name="answer"]:checked');
-                    const answers = Array.from(checkedBoxes).map(box => box.value);
-                    answer = answers.join(',');
-                }
-
-                if (!answer) {
-                    alert('請輸入或選擇一個答案！');
-                    reject('no answer');
-                    return;
-                }
-                
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            username = usernameInput.value.trim();
+            if (username) {
                 showLoading();
-                fetchAPI('submitResponse', { 
-                    name: username, 
-                    questionId: currentQuestion['題號'], 
-                    userAnswer: answer 
-                }).then(result => {
+                // 使用 Promise.all 優化，同時載入使用者狀態和題目
+                Promise.all([
+                    loadUserStatus(),
+                    loadQuestions()
+                ]).then(() => {
                     hideLoading();
-                    if (result.success) {
-                        alert(`作答成功！你獲得了 ${result.score} 分。你的總分為: ${result.totalScore}`);
-                        userStatus.attempts[currentQuestion['題號']] = (userStatus.attempts[currentQuestion['題號']] || 0) + 1;
-                        userStatus.responses[currentQuestion['題號']] = userStatus.responses[currentQuestion['題號']] || {};
-                        userStatus.responses[currentQuestion['題號']].score = result.score;
-                        userStatus.totalScore = result.totalScore;
-                        
-                        if (result.score > 0) {
-                            questionTitle.classList.add('answered-text');
-                            questionText.classList.add('answered-text');
-                            scoreInfo.classList.add('answered-text');
-                        }
-                        
-                        const attemptsLeft = currentQuestion['作答次數限制'] - (userStatus.attempts[currentQuestion['題號']] || 0);
-                        attemptsInfo.textContent = `剩餘作答次數: ${attemptsLeft}`;
-                        submitBtn.disabled = attemptsLeft <= 0;
-                        if (submitBtn.disabled) {
-                            submitBtn.textContent = '已無作答次數';
-                        }
-                        
-                        renderQuestionList();
-                        updateProgressBar(); 
-                        resolve();
-                    } else {
-                        alert('提交答案失敗: ' + result.error);
-                        reject(result.error);
+                    welcomeSection.style.display = 'none';
+                    mainQuizSection.style.display = 'block';
+                    
+                    // 登入後播放第一部影片，並指定下一部影片為 video2.mp4
+                    if (!videoPlayed.login) {
+                        playVideo('video1.mp4', 'video2.mp4');
+                        videoPlayed.login = true;
                     }
                 }).catch(error => {
                     hideLoading();
-                    alert('連線錯誤，請稍候再試。');
-                    reject(error);
+                    alert('登入失敗或連線錯誤: ' + error.message);
+                    console.error('登入失敗或連線錯誤', error);
                 });
-            });
+            }
+        });
+
+        // 影片播放結束事件監聽器
+        videoPlayer.onended = () => {
+            const nextVideoSource = videoPlayer.getAttribute('data-next-video');
+            if (nextVideoSource) {
+                videoPlayer.removeAttribute('data-next-video');
+                playVideo(nextVideoSource);
+            } else {
+                videoOverlay.style.display = 'none';
+                videoPlayer.src = '';
+            }
+        };
+
+        showQuestionsBtn.addEventListener('click', () => {
+            showQuestionsList();
+        });
+        showRankingBtn.addEventListener('click', () => {
+            showRanking();
+        });
+        submitBtn.addEventListener('click', () => {
+            submitAnswer();
+        });
+    });
+
+    function showLoading() {
+        const randomIndex = Math.floor(Math.random() * loadingJokes.length);
+        loadingMessage.textContent = loadingJokes[randomIndex];
+        loadingOverlay.classList.add('visible');
+    }
+
+    function hideLoading() {
+        loadingOverlay.classList.remove('visible');
+    }
+
+    function playVideo(videoSource, nextVideoSource = null) {
+        videoPlayer.src = videoSource;
+        if (nextVideoSource) {
+            videoPlayer.setAttribute('data-next-video', nextVideoSource);
         }
+        videoOverlay.style.display = 'flex';
+        videoPlayer.play();
+    }
 
-        function fetchRanking() {
-            return fetchAPI('getRanking').then(data => {
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-                
-                // 從多筆同名成績中，只留下最高分的那一筆
-                const highestScores = {};
-                data.forEach(entry => {
-                    if (!highestScores[entry.name] || entry.score > highestScores[entry.name].score) {
-                        highestScores[entry.name] = entry;
-                    }
-                });
-
-                // 將物件轉換為陣列並排序
-                const uniqueRanking = Object.values(highestScores);
-                uniqueRanking.sort((a, b) => b.score - a.score);
-
-                // 找到自己的排名
-                const userRankEntry = uniqueRanking.find(rank => rank.name === username);
-                if (userRankEntry) {
-                    const userPosition = uniqueRanking.indexOf(userRankEntry) + 1;
-                    yourRankDiv.textContent = `您的排名：第 ${userPosition} 名 (${userRankEntry.score} 分)`;
-                } else {
-                    yourRankDiv.textContent = `您的排名：未上榜`;
-                }
-
-                rankingContainer.innerHTML = '';
-                uniqueRanking.forEach((rank, index) => {
-                    const li = document.createElement('li');
-                    
-                    const rankSpan = document.createElement('span');
-                    rankSpan.textContent = `第 ${index + 1} 名`;
-                    
-                    const nameSpan = document.createElement('span');
-                    nameSpan.className = 'player-info';
-                    nameSpan.textContent = rank.name;
-
-                    const scoreSpan = document.createElement('span');
-                    scoreSpan.className = 'score';
-                    scoreSpan.textContent = `${rank.score} 分`;
-
-                    li.appendChild(rankSpan);
-                    li.appendChild(nameSpan);
-                    li.appendChild(scoreSpan);
-                    
-                    rankingContainer.appendChild(li);
-                });
-            });
+    function setFontSize(size) {
+        document.querySelectorAll('.font-size-controls button').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`.font-size-controls button[onclick="setFontSize('${size}')"]`).classList.add('active');
+        
+        let fontSizeValue;
+        if (size === 'small') {
+            fontSizeValue = '14px';
+        } else if (size === 'medium') {
+            fontSizeValue = '16px';
+        } else if (size === 'large') {
+            fontSizeValue = '18px';
         }
         
-        function updateProgressBar() {
-            if (maxPossibleScore > 0) {
-                const percentage = (userStatus.totalScore / maxPossibleScore) * 100;
-                scoreProgressBar.style.width = percentage + '%';
-                currentScoreText.textContent = `總進度：${userStatus.totalScore} / ${maxPossibleScore}`;
+        document.documentElement.style.fontSize = fontSizeValue;
+        questionText.style.fontSize = fontSizeValue;
+    }
 
-                if (userStatus.totalScore > 16.6) {
-                    scoreProgressBar.classList.add('purple');
-                    // 分數達到 16.6 後播放第二部影片
-                    if (!videoPlayed.score) {
-                        playVideo('video2.mp4');
-                        videoPlayed.score = true;
-                    }
-                } else {
-                    scoreProgressBar.classList.remove('purple');
+    function showQuestionsList() {
+        quizView.style.display = 'none';
+        rankingView.style.display = 'none';
+        questionsView.style.display = 'block';
+        totalScoreContainer.style.display = 'block'; 
+        updateProgressBar();
+        renderQuestionList();
+    }
+
+    function showRanking() {
+        showLoading();
+        questionsView.style.display = 'none';
+        quizView.style.display = 'none';
+        rankingView.style.display = 'block';
+        fetchRanking().then(() => hideLoading()).catch(() => hideLoading());
+    }
+
+    function fetchAPI(action, params = {}) {
+        const formData = new FormData();
+        formData.append('action', action);
+        for (const key in params) {
+            formData.append(key, params[key]);
+        }
+        return fetch(WEB_APP_URL, {
+            method: 'POST',
+            body: formData
+        }).then(res => res.json());
+    }
+
+    function loadQuestions() {
+        return fetchAPI('getQuestions').then(data => {
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            questions = data;
+            maxPossibleScore = questions.reduce((sum, q) => sum + (q['滿分'] || 1), 0);
+            renderQuestionList();
+        });
+    }
+    
+    function loadUserStatus() {
+        return fetchAPI('getUserStatus', { name: username }).then(data => {
+            if (data.error) {
+                console.error('載入使用者狀態失敗:', data.error);
+                throw new Error('載入使用者狀態失敗');
+            } else {
+                userStatus = data;
+                updateProgressBar();
+            }
+        });
+    }
+    
+    function renderQuestionList() {
+        questionListContainer.innerHTML = '';
+        questions.forEach(q => {
+            const btn = document.createElement('a');
+            btn.href = '#';
+            btn.className = 'question-btn';
+            
+            const isAnsweredCorrectly = userStatus.responses[q['題號']] && userStatus.responses[q['題號']].score > 0;
+            
+            if (isAnsweredCorrectly) {
+                btn.classList.add('answered');
+                btn.textContent = `function success(Q${q['題號']}) {\n  return "COMPLETED";\n}`;
+            } else {
+                btn.classList.add('glitch');
+                const numLines = Math.floor(Math.random() * 2) + 1;
+                let errorContent = '';
+                for (let i = 0; i < numLines; i++) {
+                    errorContent += `ERROR[${q['題號']}]: ${generateRandomString(Math.floor(Math.random() * 20) + 10)}\n`;
+                }
+                btn.textContent = errorContent.trim();
+            }
+            
+            btn.onclick = () => showQuestion(q);
+            questionListContainer.appendChild(btn);
+        });
+    }
+    
+    function generateRandomString(length) {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:",.<>/?';
+        let result = '';
+        for (let i = 0; i < length; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+    }
+
+    function showQuestion(question) {
+        questionsView.style.display = 'none';
+        rankingView.style.display = 'none';
+        quizView.style.display = 'block';
+        totalScoreContainer.style.display = 'none';
+        
+        currentQuestion = question;
+        const isAnsweredCorrectly = userStatus.responses[question['題號']] && userStatus.responses[question['題號']].score > 0;
+
+        if (isAnsweredCorrectly) {
+             questionTitle.classList.add('answered-text');
+             questionText.classList.add('answered-text');
+             scoreInfo.classList.add('answered-text');
+        } else {
+             questionTitle.classList.remove('answered-text');
+             questionText.classList.remove('answered-text');
+             scoreInfo.classList.remove('answered-text');
+        }
+       
+        questionTitle.textContent = `第 ${question['題號']} 題`;
+        questionText.textContent = question['題目'];
+        
+        const fullScore = question['滿分'] || 1;
+        scoreInfo.textContent = `這題滿分：${fullScore} 分`;
+        
+        optionsContainer.innerHTML = '';
+
+        const attemptsLeft = (question['作答次數限制'] || 1) - (userStatus.attempts[question['題號']] || 0);
+        attemptsInfo.textContent = `剩餘作答次數: ${attemptsLeft}`;
+
+        if (question['題型'] === '問答') {
+            const textarea = document.createElement('textarea');
+            textarea.rows = 4;
+            textarea.cols = 50;
+            textarea.id = 'answer-textarea';
+            optionsContainer.appendChild(textarea);
+        } else if (question['題型'] === '單選') {
+            for (let i = 1; i <= 5; i++) {
+                const optionKey = `選項${i}`;
+                const optionValue = question[optionKey];
+                if (optionValue) {
+                    const optionDiv = document.createElement('div');
+                    const input = document.createElement('input');
+                    const label = document.createElement('label');
+                    const optionLetter = String.fromCharCode(64 + i);
+
+                    input.type = 'radio';
+                    input.name = 'answer';
+                    input.value = optionLetter;
+                    
+                    label.textContent = `${optionLetter}. ${optionValue}`;
+                    label.prepend(input);
+                    
+                    optionDiv.appendChild(label);
+                    optionsContainer.appendChild(optionDiv);
+
+                    input.addEventListener('change', () => {
+                        optionsContainer.querySelectorAll('div').forEach(div => div.classList.remove('checked'));
+                        if (input.checked) {
+                            optionDiv.classList.add('checked');
+                        }
+                    });
+                }
+            }
+        } else if (question['題型'] === '多選') {
+             for (let i = 1; i <= 5; i++) {
+                const optionKey = `選項${i}`;
+                const optionValue = question[optionKey];
+                if (optionValue) {
+                    const optionDiv = document.createElement('div');
+                    const input = document.createElement('input');
+                    const label = document.createElement('label');
+                    const optionLetter = String.fromCharCode(64 + i);
+
+                    input.type = 'checkbox';
+                    input.name = 'answer';
+                    input.value = optionLetter;
+                    
+                    label.textContent = `${optionLetter}. ${optionValue}`;
+                    label.prepend(input);
+                    
+                    optionDiv.appendChild(label);
+                    optionsContainer.appendChild(optionDiv);
+
+                    input.addEventListener('change', () => {
+                        optionDiv.classList.toggle('checked', input.checked);
+                    });
                 }
             }
         }
-    </script>
+        
+        submitBtn.disabled = attemptsLeft <= 0;
+        submitBtn.textContent = submitBtn.disabled ? '已無作答次數' : '提交答案';
+    }
+
+    function submitAnswer() {
+        return new Promise((resolve, reject) => {
+            if (!currentQuestion) {
+                alert('沒有選擇題目，無法提交');
+                reject('no question');
+                return;
+            }
+
+            let answer = '';
+            if (currentQuestion['題型'] === '問答') {
+                const textarea = document.getElementById('answer-textarea');
+                if (textarea) {
+                    answer = textarea.value.trim();
+                }
+            } else if (currentQuestion['題型'] === '單選') {
+                const checkedRadio = optionsContainer.querySelector('input[name="answer"]:checked');
+                if (checkedRadio) {
+                    answer = checkedRadio.value;
+                }
+            } else if (currentQuestion['題型'] === '多選') {
+                const checkedBoxes = optionsContainer.querySelectorAll('input[name="answer"]:checked');
+                const answers = Array.from(checkedBoxes).map(box => box.value);
+                answer = answers.join(',');
+            }
+
+            if (!answer) {
+                alert('請輸入或選擇一個答案！');
+                reject('no answer');
+                return;
+            }
+            
+            showLoading();
+            fetchAPI('submitResponse', { 
+                name: username, 
+                questionId: currentQuestion['題號'], 
+                userAnswer: answer 
+            }).then(result => {
+                hideLoading();
+                if (result.success) {
+                    alert(`作答成功！你獲得了 ${result.score} 分。你的總分為: ${result.totalScore}`);
+                    userStatus.attempts[currentQuestion['題號']] = (userStatus.attempts[currentQuestion['題號']] || 0) + 1;
+                    userStatus.responses[currentQuestion['題號']] = userStatus.responses[currentQuestion['題號']] || {};
+                    userStatus.responses[currentQuestion['題號']].score = result.score;
+                    userStatus.totalScore = result.totalScore;
+                    
+                    if (result.score > 0) {
+                        questionTitle.classList.add('answered-text');
+                        questionText.classList.add('answered-text');
+                        scoreInfo.classList.add('answered-text');
+                    }
+                    
+                    const attemptsLeft = currentQuestion['作答次數限制'] - (userStatus.attempts[currentQuestion['題號']] || 0);
+                    attemptsInfo.textContent = `剩餘作答次數: ${attemptsLeft}`;
+                    submitBtn.disabled = attemptsLeft <= 0;
+                    if (submitBtn.disabled) {
+                        submitBtn.textContent = '已無作答次數';
+                    }
+                    
+                    renderQuestionList();
+                    updateProgressBar(); 
+                    resolve();
+                } else {
+                    alert('提交答案失敗: ' + result.error);
+                    reject(result.error);
+                }
+            }).catch(error => {
+                hideLoading();
+                alert('連線錯誤，請稍候再試。');
+                reject(error);
+            });
+        });
+    }
+
+    function fetchRanking() {
+        return fetchAPI('getRanking').then(data => {
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            // 從多筆同名成績中，只留下最高分的那一筆
+            const highestScores = {};
+            data.forEach(entry => {
+                if (!highestScores[entry.name] || entry.score > highestScores[entry.name].score) {
+                    highestScores[entry.name] = entry;
+                }
+            });
+
+            // 將物件轉換為陣列並排序
+            const uniqueRanking = Object.values(highestScores);
+            uniqueRanking.sort((a, b) => b.score - a.score);
+
+            // 找到自己的排名
+            const userRankEntry = uniqueRanking.find(rank => rank.name === username);
+            if (userRankEntry) {
+                const userPosition = uniqueRanking.indexOf(userRankEntry) + 1;
+                yourRankDiv.textContent = `您的排名：第 ${userPosition} 名 (${userRankEntry.score} 分)`;
+            } else {
+                yourRankDiv.textContent = `您的排名：未上榜`;
+            }
+
+            rankingContainer.innerHTML = '';
+            uniqueRanking.forEach((rank, index) => {
+                const li = document.createElement('li');
+                
+                const rankSpan = document.createElement('span');
+                rankSpan.textContent = `第 ${index + 1} 名`;
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'player-info';
+                nameSpan.textContent = rank.name;
+
+                const scoreSpan = document.createElement('span');
+                scoreSpan.className = 'score';
+                scoreSpan.textContent = `${rank.score} 分`;
+
+                li.appendChild(rankSpan);
+                li.appendChild(nameSpan);
+                li.appendChild(scoreSpan);
+                
+                rankingContainer.appendChild(li);
+            });
+        });
+    }
+    
+    function updateProgressBar() {
+        if (maxPossibleScore > 0) {
+            const percentage = (userStatus.totalScore / maxPossibleScore) * 100;
+            scoreProgressBar.style.width = percentage + '%';
+            currentScoreText.textContent = `總進度：${userStatus.totalScore} / ${maxPossibleScore}`;
+
+            if (userStatus.totalScore > 16.6) {
+                scoreProgressBar.classList.add('purple');
+                // 分數達到 16.6 後播放第二部影片，並指定下一部影片為 video3.mp4
+                if (!videoPlayed.score) {
+                    playVideo('video2.mp4', 'video3.mp4');
+                    videoPlayed.score = true;
+                }
+            } else {
+                scoreProgressBar.classList.remove('purple');
+            }
+        }
+    }
+</script>
 </body>
 </html>
