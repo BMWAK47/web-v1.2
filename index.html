@@ -125,6 +125,9 @@
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 15px;
             margin-top: 20px;
+            max-height: 500px; /* 設定最大高度 */
+            overflow-y: auto; /* 啟用垂直捲動 */
+            padding-right: 15px; /* 避免內容被捲軸遮擋 */
         }
 
         .question-btn {
@@ -603,6 +606,8 @@
         let maxPossibleScore = 0;
         // 追蹤影片播放狀態，確保只播放一次
         let videoPlayed = { login: false, score: false };
+        // 新增：儲存捲動位置
+        let lastScrollPosition = 0;
 
         const welcomeSection = document.getElementById('welcome-section');
         const mainQuizSection = document.getElementById('main-quiz-section');
@@ -751,6 +756,9 @@
             totalScoreContainer.style.display = 'block'; 
             updateProgressBar();
             renderQuestionList();
+            
+            // 修正：回到列表時捲動至上次離開的位置
+            questionListContainer.scrollTop = lastScrollPosition;
         }
 
         function showRanking() {
@@ -843,6 +851,9 @@
         }
 
         function showQuestion(question) {
+            // 修正：在切換到題目畫面時，儲存目前的捲動位置
+            lastScrollPosition = questionListContainer.scrollTop;
+
             questionsView.style.display = 'none';
             rankingView.style.display = 'none';
             quizView.style.display = 'block';
@@ -996,7 +1007,8 @@
                         }
                         
                         renderQuestionList();
-                        updateProgressBar(); 
+                        updateProgressBar();
+                        showQuestionsList(); // 修正：提交後自動返回列表
                         resolve();
                     } else {
                         alert('提交答案失敗: ' + result.error);
