@@ -1065,9 +1065,8 @@
             if (maxPossibleScore > 0) {
                 const percentage = (userStatus.totalScore / maxPossibleScore) * 100;
                 scoreProgressBar.style.width = percentage + '%';
-                // 修正：將總分取整數
-                const roundedScore = Math.floor(userStatus.totalScore);
-                currentScoreText.textContent = `總進度：${roundedScore} / ${maxPossibleScore}`;
+                // 修正：將總分格式化為兩位小數，分母維持整數
+                currentScoreText.textContent = `總進度：${userStatus.totalScore.toFixed(2)} / ${maxPossibleScore}`;
 
                 if (userStatus.totalScore > 16.6) {
                     scoreProgressBar.classList.add('purple');
