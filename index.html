@@ -148,6 +148,24 @@
             border-color: #00ff00;
             box-shadow: 0 0 10px rgba(0, 255, 0, 0.4);
         }
+        
+        /* 新增：魔王題樣式 */
+        .question-btn.boss-question {
+            color: #ff0000;
+            border-color: #ff0000;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+            font-weight: bold;
+            font-size: 1.2em;
+            text-align: center;
+            animation: pulse-red 1.5s infinite alternate;
+        }
+        .question-btn.boss-question:hover {
+            box-shadow: 0 0 30px rgba(255, 0, 0, 1);
+        }
+        @keyframes pulse-red {
+            from { box-shadow: 0 0 20px rgba(255, 0, 0, 0.8); }
+            to { box-shadow: 0 0 35px rgba(255, 0, 0, 1); }
+        }
 
         .question-btn.glitch {
             color: #ff00ff;
@@ -785,9 +803,19 @@
                 btn.href = '#';
                 btn.className = 'question-btn';
                 
+                const questionNumber = parseInt(q['題號']);
+                const isBossQuestion = questionNumber >= 61 && questionNumber <= 65;
                 const isAnsweredCorrectly = userStatus.responses[q['題號']] && userStatus.responses[q['題號']].score > 0;
                 
-                if (isAnsweredCorrectly) {
+                if (isBossQuestion) {
+                    btn.classList.add('boss-question');
+                    btn.textContent = '魔王題';
+                    if (isAnsweredCorrectly) {
+                         btn.classList.remove('boss-question');
+                         btn.classList.add('answered');
+                         btn.textContent = `function success(Q${q['題號']}) {\n  return "COMPLETED";\n}`;
+                    }
+                } else if (isAnsweredCorrectly) {
                     btn.classList.add('answered');
                     btn.textContent = `function success(Q${q['題號']}) {\n  return "COMPLETED";\n}`;
                 } else {
@@ -892,10 +920,10 @@
                         input.name = 'answer';
                         input.value = optionLetter;
                         
-                        label.textContent = `${optionLetter}. ${optionValue}`;
-                        label.prepend(input);
-                        
+                        optionDiv.appendChild(input);
                         optionDiv.appendChild(label);
+                        label.textContent = `${optionLetter}. ${optionValue}`;
+                        
                         optionsContainer.appendChild(optionDiv);
 
                         input.addEventListener('change', () => {
@@ -1037,7 +1065,9 @@
             if (maxPossibleScore > 0) {
                 const percentage = (userStatus.totalScore / maxPossibleScore) * 100;
                 scoreProgressBar.style.width = percentage + '%';
-                currentScoreText.textContent = `總進度：${userStatus.totalScore} / ${maxPossibleScore}`;
+                // 修正：將總分取整數
+                const roundedScore = Math.floor(userStatus.totalScore);
+                currentScoreText.textContent = `總進度：${roundedScore} / ${maxPossibleScore}`;
 
                 if (userStatus.totalScore > 16.6) {
                     scoreProgressBar.classList.add('purple');
