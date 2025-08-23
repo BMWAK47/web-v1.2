@@ -605,8 +605,8 @@
         let maxPossibleScore = 0;
         // 追蹤影片播放狀態，確保只播放一次
         let videoPlayed = { login: false, score: false };
-        // 新增：儲存捲動位置
-        let lastScrollPosition = 0;
+        // 新增：儲存最後點擊的題目 ID
+        let lastQuestionId = null;
 
         const welcomeSection = document.getElementById('welcome-section');
         const mainQuizSection = document.getElementById('main-quiz-section');
@@ -756,8 +756,13 @@
             updateProgressBar();
             renderQuestionList();
             
-            // 修正：回到列表時捲動至上次離開的位置
-            questionListContainer.scrollTop = lastScrollPosition;
+            // 修正：回到列表時，自動捲動到最後離開的位置
+            if (lastQuestionId) {
+                const lastQuestionElement = document.getElementById(lastQuestionId);
+                if (lastQuestionElement) {
+                    lastQuestionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
         }
 
         function showRanking() {
@@ -809,6 +814,7 @@
                 const btn = document.createElement('a');
                 btn.href = '#';
                 btn.className = 'question-btn';
+                btn.id = `question-${q['題號']}`; // 新增 ID
                 
                 const questionNumber = parseInt(q['題號']);
                 const isBossQuestion = questionNumber >= 61 && questionNumber <= 65;
@@ -850,8 +856,8 @@
         }
 
         function showQuestion(question) {
-            // 修正：在切換到題目畫面時，儲存目前的捲動位置
-            lastScrollPosition = questionListContainer.scrollTop;
+            // 修正：在切換到題目畫面時，儲存目前的題目ID
+            lastQuestionId = `question-${question['題號']}`;
 
             questionsView.style.display = 'none';
             rankingView.style.display = 'none';
