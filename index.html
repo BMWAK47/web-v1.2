@@ -519,6 +519,18 @@
             from { box-shadow: 0 0 5px #ffff00, 0 0 10px #ffff00; }
             to { box-shadow: 0 0 20px #ffff00, 0 0 30px #ffff00; }
         }
+        
+        /* 新增的樣式：黃色並加粗，且有光芒閃爍效果 */
+        #warning-message {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            font-size: 1.5em;
+            color: #ffff00;
+            text-shadow: 0 0 10px #ffff00, 0 0 20px #ffff00;
+            animation: glowing 1.5s infinite alternate;
+            margin-bottom: 20px;
+            text-align: center;
+        }
 
     </style>
 </head>
@@ -534,6 +546,7 @@
 
         <div class="login-section" id="welcome-section">
             <h1>AI 蓄能終端機</h1>
+            <div id="warning-message" style="display: none;">請小心！魔王題就在其中！</div>
             <form id="login-form">
                 <input type="text" id="username-input" placeholder="名牌上的隊伍" required>
                 <button type="submit">CONFIRM</button>
@@ -596,7 +609,7 @@
 
     <script>
         // 請務必將此 URL 替換為您自己的 Google Apps Script 部署 URL
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzkhhV9y6iHlWY14V4ucYNqNkkYJ5LAbfi8nEhF9vX7E8O-rs05P5d4qfnh47QibyFx/exec"; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzkhhV9y6iHlWY14V4ucYNqNkkYJ5LAbfi8nEh9vX7E8O-rs05P5d4qfnh47QibyFx/exec"; 
 
         let questions = [];
         let username = '';
@@ -635,6 +648,7 @@
         const videoOverlay = document.getElementById('video-overlay');
         const videoPlayer = document.getElementById('video-player');
         const completionMessage = document.getElementById('completion-message');
+        const warningMessage = document.getElementById('warning-message');
 
         const loadingJokes = [
             "在非洲，每六十秒，就有一分鐘過去",
@@ -667,6 +681,9 @@
             // 修改標題文字
             document.getElementById('total-score-title').textContent = '金鑰破解進度';
             
+            // 登入頁面顯示時，立即顯示警告訊息
+            warningMessage.style.display = 'block';
+
             loginForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 username = usernameInput.value.trim();
