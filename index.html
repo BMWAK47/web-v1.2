@@ -502,25 +502,35 @@
             background-color: #5a5a7b;
         }
 
-        /* 遊戲結束訊息樣式 */
+        /* 遊戲結束訊息樣式 - 更新為置頂 */
         #completion-message {
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(255, 255, 0, 0.2);
-            border: 2px solid #ffff00;
-            border-radius: 10px;
-            color: #ffff00;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            margin-top: 0;
+            padding: 20px;
+            background: rgba(255, 255, 0, 0.9);
+            border: none;
+            border-bottom: 2px solid #ffff00;
+            border-radius: 0;
+            color: #1a1a2e;
             font-family: 'Orbitron', sans-serif;
-            text-shadow: 0 0 5px #ffff00;
+            font-weight: bold;
+            font-size: 1.8em;
+            text-shadow: none;
+            z-index: 999;
             animation: glowing 1.5s infinite alternate;
+            text-align: center;
+            display: none;
         }
         
         @keyframes glowing {
             from { box-shadow: 0 0 5px #ffff00, 0 0 10px #ffff00; }
             to { box-shadow: 0 0 20px #ffff00, 0 0 30px #ffff00; }
         }
-        
-        /* 新增的樣式：黃色並加粗，且有光芒閃爍效果 */
+
+        /* 新增的警告訊息樣式 */
         #warning-message {
             font-family: 'Orbitron', sans-serif;
             font-weight: bold;
@@ -535,6 +545,10 @@
     </style>
 </head>
 <body>
+
+    <div id="completion-message">
+        恭喜你們成功為首領極限威能武器蓄力，也感化身邊的腐蝕機器人，呼喚他讓他帶著你們回歸自由吧~
+    </div>
 
     <div class="container" id="main-container">
         
@@ -584,10 +598,6 @@
                 </div>
             </div>
             
-            <div id="completion-message" style="display: none;">
-                恭喜你們成功為首領極限威能武器蓄力，也感化身邊的腐蝕機器人，呼喚他讓他帶著你們回歸自由吧~
-            </div>
-
             <div class="ranking-view" id="ranking-view">
                 <h2 style="font-family: 'Orbitron', sans-serif;">排行榜</h2>
                 <div id="your-rank"></div>
@@ -609,7 +619,7 @@
 
     <script>
         // 請務必將此 URL 替換為您自己的 Google Apps Script 部署 URL
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzkhhV9y6iHlWY14V4ucYNqNkkYJ5LAbfi8nEh9vX7E8O-rs05P5d4qfnh47QibyFx/exec"; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzkhhV9y6iHlWY14V4ucYNqNkkYJ5LAbfi8nEhF9vX7E8O-rs05P5d4qfnh47QibyFx/exec"; 
 
         let questions = [];
         let username = '';
