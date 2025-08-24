@@ -502,27 +502,18 @@
             background-color: #5a5a7b;
         }
 
-        /* 遊戲結束訊息樣式 - 更新為置頂 */
+        /* 遊戲結束訊息樣式 */
         #completion-message {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            margin-top: 0;
-            padding: 20px;
-            background: rgba(255, 255, 0, 0.9);
-            border: none;
-            border-bottom: 2px solid #ffff00;
-            border-radius: 0;
-            color: #1a1a2e;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 0, 0.2);
+            border: 2px solid #ffff00;
+            border-radius: 10px;
+            color: #ffff00;
             font-family: 'Orbitron', sans-serif;
-            font-weight: bold;
-            font-size: 1.8em;
-            text-shadow: none;
-            z-index: 999;
+            text-shadow: 0 0 5px #ffff00;
             animation: glowing 1.5s infinite alternate;
             text-align: center;
-            display: none;
         }
         
         @keyframes glowing {
@@ -530,25 +521,9 @@
             to { box-shadow: 0 0 20px #ffff00, 0 0 30px #ffff00; }
         }
 
-        /* 新增的警告訊息樣式 */
-        #warning-message {
-            font-family: 'Orbitron', sans-serif;
-            font-weight: bold;
-            font-size: 1.5em;
-            color: #ffff00;
-            text-shadow: 0 0 10px #ffff00, 0 0 20px #ffff00;
-            animation: glowing 1.5s infinite alternate;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
     </style>
 </head>
 <body>
-
-    <div id="completion-message">
-        恭喜你們成功為首領極限威能武器蓄力，也感化身邊的腐蝕機器人，呼喚他讓他帶著你們回歸自由吧~
-    </div>
 
     <div class="container" id="main-container">
         
@@ -560,7 +535,6 @@
 
         <div class="login-section" id="welcome-section">
             <h1>AI 蓄能終端機</h1>
-            <div id="warning-message" style="display: none;">請小心！魔王題就在其中！</div>
             <form id="login-form">
                 <input type="text" id="username-input" placeholder="名牌上的隊伍" required>
                 <button type="submit">CONFIRM</button>
@@ -571,6 +545,10 @@
             <div class="nav-buttons">
                 <button id="show-questions-btn">任務列表</button>
                 <button id="show-ranking-btn">排行榜</button>
+            </div>
+
+            <div id="completion-message" style="display: none;">
+                恭喜你們成功為首領極限威能武器蓄力，也感化身邊的腐蝕機器人，呼喚他讓他帶著你們回歸自由吧~
             </div>
 
             <div class="total-score" id="total-score-container">
@@ -658,7 +636,6 @@
         const videoOverlay = document.getElementById('video-overlay');
         const videoPlayer = document.getElementById('video-player');
         const completionMessage = document.getElementById('completion-message');
-        const warningMessage = document.getElementById('warning-message');
 
         const loadingJokes = [
             "在非洲，每六十秒，就有一分鐘過去",
@@ -691,9 +668,6 @@
             // 修改標題文字
             document.getElementById('total-score-title').textContent = '金鑰破解進度';
             
-            // 登入頁面顯示時，立即顯示警告訊息
-            warningMessage.style.display = 'block';
-
             loginForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 username = usernameInput.value.trim();
@@ -892,7 +866,7 @@
         }
 
         function showQuestion(question) {
-            // 修正：在切換到題目畫面時，儲存目前的題目ID
+            // 修正：在切換到題目畫面時，儲存目前的題目 ID
             lastQuestionId = `question-${question['題號']}`;
 
             questionsView.style.display = 'none';
