@@ -734,13 +734,23 @@
         }
 
         function playVideo(videoSource, nextVideoSource = null) {
-            videoPlayer.src = videoSource;
-            if (nextVideoSource) {
-                videoPlayer.setAttribute('data-next-video', nextVideoSource);
+             const videoOverlay = document.getElementById('video-overlay');
+              const videoPlayer = document.getElementById('video-player');
+
+             // 新增：如果元素不存在，就直接返回，避免錯誤
+             if (!videoOverlay || !videoPlayer) {
+                  console.error("Video player or overlay element not found.");
+                  return;
+             }
+    
+              // 您的既有程式碼
+               videoPlayer.src = videoSource;
+               if (nextVideoSource) {
+                   videoPlayer.setAttribute('data-next-video', nextVideoSource);
+               }
+               videoOverlay.style.display = 'flex';
+               videoPlayer.play();
             }
-            videoOverlay.style.display = 'flex';
-            videoPlayer.play();
-        }
 
         function setFontSize(size) {
             document.querySelectorAll('.font-size-controls button').forEach(btn => btn.classList.remove('active'));
