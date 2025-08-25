@@ -597,7 +597,7 @@
 
     <script>
         // 請務必將此 URL 替換為您自己的 Google Apps Script 部署 URL
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzCVoSGDyHdMsAzb3rWF3pLQEsvpyW5Ldoy7npPr1X9ZdQXCPqKi59ww-MCs7lWBx4/exec"; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzkhhV9y6iHlWY14V4ucYNqNkkYJ5LAbfi8nEhF9vX7E8O-rs05P5d4qfnh47QibyFx/exec"; 
 
         let questions = [];
         let username = '';
@@ -660,7 +660,6 @@
             "人生七十古來稀 PV=nRT",
             "叫天天不應，叫哥哥布靈",
             "一日不見，如隔一日；七日不見，如隔一周"
-            "附近的提示卡總共有三張，但是為了不被看守的機器人察覺，首領將這些提示藏的非常隱蔽"
         ];
         
         document.addEventListener('DOMContentLoaded', () => {
@@ -734,23 +733,13 @@
         }
 
         function playVideo(videoSource, nextVideoSource = null) {
-             const videoOverlay = document.getElementById('video-overlay');
-              const videoPlayer = document.getElementById('video-player');
-
-             // 新增：如果元素不存在，就直接返回，避免錯誤
-             if (!videoOverlay || !videoPlayer) {
-                  console.error("Video player or overlay element not found.");
-                  return;
-             }
-    
-              // 您的既有程式碼
-               videoPlayer.src = videoSource;
-               if (nextVideoSource) {
-                   videoPlayer.setAttribute('data-next-video', nextVideoSource);
-               }
-               videoOverlay.style.display = 'flex';
-               videoPlayer.play();
+            videoPlayer.src = videoSource;
+            if (nextVideoSource) {
+                videoPlayer.setAttribute('data-next-video', nextVideoSource);
             }
+            videoOverlay.style.display = 'flex';
+            videoPlayer.play();
+        }
 
         function setFontSize(size) {
             document.querySelectorAll('.font-size-controls button').forEach(btn => btn.classList.remove('active'));
